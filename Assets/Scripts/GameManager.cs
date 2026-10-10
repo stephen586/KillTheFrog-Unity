@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
     public GameObject restartButton;
     public GameObject frog;
 
+    // Title and instructions
+    public GameObject titleText;
+    public GameObject instructionText;
+    public float introDisplayTime = 2f;
+
     public float gameTime = 30f;
 
     private float timeRemaining;
@@ -26,6 +31,25 @@ public class GameManager : MonoBehaviour
 
         gameOverText.gameObject.SetActive(false);
         restartButton.SetActive(false);
+
+        // Show title and instructions when the game starts.
+        if (titleText != null)
+            titleText.SetActive(true);
+
+        if (instructionText != null)
+            instructionText.SetActive(true);
+
+        // Hide both after 2 seconds.
+        Invoke(nameof(HideIntro), introDisplayTime);
+    }
+
+    private void HideIntro()
+    {
+        if (titleText != null)
+            titleText.SetActive(false);
+
+        if (instructionText != null)
+            instructionText.SetActive(false);
     }
 
     private void Update()
