@@ -1,81 +1,70 @@
+
 using UnityEngine;
-using TMPro;
 using System.Collections;
 
 public class Frog : MonoBehaviour
 {
-    public TextMeshProUGUI scoreText;
     public AudioSource hitSound;
 
-    private int score = 0;
+    public float disappearY = -5f;
 
-    public float appearTime = 2f;
-    private float timer;
-
+    private GameManager gameManager;
     private bool isHit = false;
 
     private void Start()
     {
-        scoreText.text = "Score: 0";
-        timer = appearTime;
-        MoveFrog();
+        gameManager = FindFirstObjectByType<GameManager>();
     }
 
     private void Update()
     {
-        if (isHit)
-            return;
-
-        timer -= Time.deltaTime;
-
-        if (timer <= 0f)
+        // Remove frogs that have fallen below the screen.
+        if (transform.position.y < disappearY)
         {
-            MoveFrog();
-            timer = appearTime;
+            Destroy(gameObject);
         }
     }
 
     private void OnMouseDown()
     {
-        if (!isHit)
+        if (isHit || gameManager == null)
+            return;
+
+        isHit = true;
+
+        // Increase the shared score.
+        gameManager.AddScore();
+
+        // Play the existing hit sound.
+        if (hitSound != null)
         {
-            score++;
-
-            scoreText.text = "Score: " + score;
-
-            // Play the complete hit sound
             hitSound.Play();
-
-            StartCoroutine(HitEffect());
         }
+
+        StartCoroutine(HitEffect());
     }
 
     private IEnumerator HitEffect()
     {
-        isHit = true;
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
 
-        Vector3 originalScale = transform.localScale;
+        // Stop the frog falling while the hit effect plays.
+        if (rb != null)
+        {
+            rb.simulated = false;
+        }
 
-        // Shrink frog when hit
-        transform.localScale = originalScale * 0.5f;
+        // Prevent repeated clicks.
+        Collider2D frogCollider = GetComponent<Collider2D>();
+        if (frogCollider != null)
+        {
+            frogCollider.enabled = false;
+        }
+
+        transform.localScale *= 0.5f;
 
         yield return new WaitForSeconds(0.15f);
 
-        // Restore normal size
-        transform.localScale = originalScale;
-
-        // Move to another random position
-        MoveFrog();
-
-        timer = appearTime;
-        isHit = false;
-    }
-
-    private void MoveFrog()
-    {
-        float randomX = Random.Range(-6f, 6f);
-        float randomY = Random.Range(-3f, 3f);
-
-        transform.position = new Vector3(randomX, randomY, 0f);
+        Destroy(gameObject);
     }
 }

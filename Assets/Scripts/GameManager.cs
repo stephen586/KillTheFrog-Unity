@@ -1,9 +1,11 @@
+
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public TextMeshProUGUI scoreText;
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI gameOverText;
     public GameObject restartButton;
@@ -12,15 +14,16 @@ public class GameManager : MonoBehaviour
     public float gameTime = 30f;
 
     private float timeRemaining;
+    private int score = 0;
     private bool gameOver = false;
 
     private void Start()
     {
         timeRemaining = gameTime;
 
+        scoreText.text = "Score: 0";
         timerText.text = "Time: " + Mathf.CeilToInt(timeRemaining);
 
-        // Hide Game Over UI when game starts
         gameOverText.gameObject.SetActive(false);
         restartButton.SetActive(false);
     }
@@ -45,11 +48,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void AddScore()
+    {
+        if (gameOver) return;
+
+        score++;
+        scoreText.text = "Score: " + score;
+    }
+
     private void GameOver()
     {
         gameOver = true;
 
-        frog.SetActive(false);
+        // Stop all future frog spawning.
+        FrogSpawner spawner = FindFirstObjectByType<FrogSpawner>();
+        if (spawner != null)
+        {
+            spawner.CancelInvoke();
+        }
+
+        // Remove all frogs currently on screen.
+        Frog[] frogs = FindObjectsByType<Frog>(FindObjectsSortMode.None);
+        foreach (Frog currentFrog in frogs)
+        {
+            currentFrog.gameObject.SetActive(false);
+        }
 
         gameOverText.gameObject.SetActive(true);
         restartButton.SetActive(true);
